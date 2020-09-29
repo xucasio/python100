@@ -13,7 +13,7 @@ headers = {
 
 r = requests.get(url, headers=headers)
 soup = BeautifulSoup(r.content, 'html.parser')
-items = soup.find_all('img', attrs={'alt': '快乐的冠军狗与奖牌。矢量平面卡通人物插画'})
+items = soup.select(".images-list .vue-waterfall .item img")
 
 folder_path = './photo'
 
@@ -26,7 +26,7 @@ for index, item in enumerate(items):
         if html is not None:
             img_name = folder_path + str(index + 1) + '.png'
             image = Image.open(BytesIO(html.content))
-            image.save('D:\\workspace\\python\\imgSpider\\photo' + img_name)
+            image.save('E:\\python\\photo' + img_name)
             print('第%d张图片下载完成' % (index + 1))
             time.sleep(1)  # 自定义延时
 
