@@ -51,13 +51,13 @@ class SpiderMain(object):
 if __name__ == "__main__":
     obj_spider = SpiderMain()
     threads = {}
-    for p in range(1, 30):
+    for p in range(1, 5):
         root_url = "https://m.manhuafen.com/comic/39/372855.html?p=" + str(p)
         # obj_spider.craw(root_url)
         threads['t' + str(p)] = threading.Thread(target=obj_spider.craw,
                                                  args=(root_url, str(p)))
         threads['t' + str(p)].start()
-    for p in range(1, 30):
+    for p in range(1, 5):
         threads['t' + str(p)].join()
     print('异常列表', obj_spider.exList)
     while len(obj_spider.exList) > 0:
