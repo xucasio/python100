@@ -55,7 +55,7 @@ def get_ChartTxt(url,title,num):
     # 单独写入这一章
     try:
         with open(r'.\%s\%s %s.txt' % (title, num,subtitle), 'w', encoding='utf-8') as f:
-            f.write(subtitle + content)
+            f.write(subtitle + '\n' + content)
         f.close()
         print(num,subtitle, '下载成功')
 
@@ -151,6 +151,7 @@ def sort_allCharts(path,filename):
     with open(r'.\%s'%(filename),'a',encoding='utf-8') as f:
         for i in lists:
             with open(r'%s\%s' % (path, i), 'r', encoding='utf-8') as temp:
+                f.writelines('$$$\n')
                 f.writelines(temp.readlines())
             temp.close()
     f.close()
@@ -163,7 +164,7 @@ if __name__=="__main__":
     # # 主页
     base = 'http://www.ybdu.co'
     # 下载指定的书
-    # process_getAllBook(base)
+    process_getAllBook(base)
     sort_allCharts(r'.\雪鹰领主',"雪鹰领主.txt")
     # sort_allCharts(r'.\武道天下',"武道天下.txt")
     # sort_allCharts(r'.\修罗武神',"修罗武神.txt")
