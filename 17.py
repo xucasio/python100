@@ -2,5 +2,5 @@
 obj = {}
 while True:
     astr = str(input('输入一串字符串'))
-    print(range(astr))
+    print(astr)
     # for i in range(astr):

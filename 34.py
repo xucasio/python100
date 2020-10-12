@@ -1,43 +1,85 @@
-# 爬取某个地址的小说
-import re
-import urllib.request
-import time
+#! /usr/bin/python
+# -*- coding: utf-8 -*-
+# 图片上传七牛云
+
+from qiniu import Auth, put_file, etag, urlsafe_base64_encode
+import qiniu.config
+from qiniu import BucketManager
+import sys, time
 import os
+import msvcrt
+import subprocess
+from datetime import datetime
+
+# you will get md_url in this file
+result_file = "./qiniu/ss.txt"
+
+if os.path.exists(result_file):
+    os.remove(result_file)
+os.chdir(sys.path[0])
+
+access_key = 'jCvcWK1m4OgH1ZIrvcwuOhUUlY-I09B0KNk8YbfT'
+secret_key = 'AUfJZZBQAZIERUbvq6Zt-gI9TUGzzrhFp9MiuTRM'
+bucket_name = 'cartoon123'
+bucket_url = 'qhx8yqe57.hn-bkt.clouddn.com'
+md_url_result = "md_url.txt"  # 链接保存的位置
+
+img_suffix = ["jpg", "jpeg", "png", "bmp", "gif"]
 
 
-# 定义一个爬取网络小说的函数
-def getNovelContent():
-    html = urllib.request.urlopen(
-        "http://www.quanshuwang.com/book/44/44683").read()
-    html = html.decode("gbk")  # 转成该网址的格式
-    # <li><a href="http://www.quanshuwang.com/book/44/44683/15379609.html" title="引子 穿越的唐家三少，共2744字">引子 穿越的唐家三少</a></li>  # 参考
-    reg = r'<li><a href="(.*?)" title=".*?">(.*?)</a></li>'  # 正则表达的匹配
-    reg = re.compile(reg)  # 可添加可不添加，增加效率
-    urls = re.findall(reg, html)
-    bookname = 'douhundalu'
-    folder_path = './' + bookname
-    if os.path.exists(folder_path) is False:
-        os.makedirs(folder_path)
-    retval = os.getcwd()
-    os.chdir(retval + '\\' + bookname)
-    for url in urls:
-        # print(url)
-        time.sleep(10)
-        chapter_url = url[0]  # 章节的超链接
-        chapter_title = url[1]  # 章节的名字
-        # print(chapter_title)
-        chapter_html = urllib.request.urlopen(chapter_url).read()  # 正文内容源代码
-        chapter_html = chapter_html.decode("gbk")
-        chapter_reg = r'</script>&nbsp;&nbsp;&nbsp;&nbsp;.*?<br />(.*?)<script type="text/javascript">'
-        chapter_reg = re.compile(chapter_reg, re.S)
-        chapter_content = re.findall(chapter_reg, chapter_html)
-        for content in chapter_content:
-            content = content.replace("&nbsp;&nbsp;&nbsp;&nbsp;", "")
-            content = content.replace("<br />", "")
-
-            f = open('{}.txt'.format(chapter_title), 'w')
-            f.write(content)
-            time.sleep(1)
+def upload_img(bucket_name, file_name, file_path):
+    # generate token
+    token = q.upload_token(bucket_name, file_name, 3600)
+    info = put_file(token, file_name, file_path)
+    # delete local imgFile
+    # os.remove(file_path)
+    return
 
 
-getNovelContent()
+def get_img_url(bucket_url, file_name):
+    # date=datetime.now().strftime('%Y%m%d_%H%M%S')
+    # file_names = file_name+'?'+date
+    img_url = 'http://%s/%s' % (bucket_url, file_name)
+    # generate md_url
+    md_url = "![%s](%s)\n" % (file_name, img_url)
+    return md_url
+
+
+def save_to_txt(bucket_url, file_name):
+    url_before_save = get_img_url(bucket_url, file_name)
+    # save to clipBoard
+    addToClipBoard(url_before_save)
+    # save md_url to txt
+    with open(md_url_result, "a") as f:
+        f.write(url_before_save)
+    return
+
+
+# save to clipboard
+def addToClipBoard(text):
+    command = 'echo ' + text.strip() + '| clip'
+    os.system(command)
+
+
+# get filename of .md in current index
+def getMarkName(paths):
+    f_list = os.listdir(paths)
+    for i in f_list:
+        name = os.path.splitext(i)[0]
+        end = os.path.splitext(i)[1]
+        if end == '.md':
+            return name + '_'
+    return 'markdown'
+
+
+if __name__ == '__main__':
+    q = Auth(access_key, secret_key)
+    bucket = BucketManager(q)
+    imgs = sys.argv[1:]
+
+    for img in imgs:
+        # name for img with local time
+        up_filename = getMarkName(os.getcwd().replace(
+            '\\', '/')) + os.path.split(img)[1]
+        upload_img(bucket_name, up_filename, img)
+        save_to_txt(bucket_url, up_filename)
